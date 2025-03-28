@@ -10,11 +10,19 @@
 #include <cmath>
 #include <string>
 #include <fstream>
-#include "Logger.h" // Include logger
+#include "Logger.h"
 
 using namespace std;
 
-ofstream logFile; // Define global logFile
+ofstream logFile;
+
+int crittersKilled = 0;
+bool gameOver = false;
+enum class GameAction { 
+    None, 
+    Exit, 
+    Restart 
+};
 
 void logObserver(const string& message) {
     if (logFile.is_open()) {
@@ -114,7 +122,8 @@ void promptUserToPlaceTowers(Map& map, sf::RenderWindow& window, sf::Font& font,
                 if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
                     sf::Vector2i mousePos = sf::Mouse::getPosition(window);
                     if (mousePos.y < 800) {
-                        towerPlaced = map.placeTower(mousePos.x, mousePos.y, selectedTowerType);
+                        float tileSize = map.getTileSize().x; // Use x dimension (assuming square tiles)
+                        towerPlaced = map.placeTower(mousePos.x, mousePos.y, selectedTowerType, tileSize);
                     }
                 }
             }
@@ -166,6 +175,108 @@ bool showQuitConfirmation(sf::RenderWindow& window, sf::Font& font) {
         confirmWindow.display();
     }
     return false;
+}
+
+GameAction displayGameOverOverlay(sf::RenderWindow& window, int playerCoins, int crittersKilled, const sf::Font& font) {
+    sf::RectangleShape overlay(sf::Vector2f(800, 900));
+    overlay.setFillColor(sf::Color(50, 50, 50, 200));
+    overlay.setPosition(0, 0);
+
+    sf::Text gameOverText;
+    gameOverText.setString("Game Over");
+    gameOverText.setCharacterSize(40);
+    gameOverText.setFillColor(sf::Color::White);
+    gameOverText.setFont(font);
+    sf::FloatRect gameOverBounds = gameOverText.getLocalBounds();
+    gameOverText.setPosition((800 - gameOverBounds.width) / 2 - gameOverBounds.left, 200 - gameOverBounds.top);
+
+    sf::Text coinsText;
+    coinsText.setString("Coins: " + std::to_string(playerCoins));
+    coinsText.setCharacterSize(20);
+    coinsText.setFillColor(sf::Color::White);
+    coinsText.setFont(font);
+    sf::FloatRect coinsBounds = coinsText.getLocalBounds();
+    coinsText.setPosition((800 - coinsBounds.width) / 2 - coinsBounds.left, 300 - coinsBounds.top);
+
+    sf::Text killedText;
+    killedText.setString("Critters Killed: " + std::to_string(crittersKilled));
+    killedText.setCharacterSize(20);
+    killedText.setFillColor(sf::Color::White);
+    killedText.setFont(font);
+    sf::FloatRect killedBounds = killedText.getLocalBounds();
+    killedText.setPosition((800 - killedBounds.width) / 2 - killedBounds.left, 350 - killedBounds.top);
+
+    sf::RectangleShape exitButton(sf::Vector2f(100, 40));
+    exitButton.setFillColor(sf::Color(200, 50, 50));
+    exitButton.setOutlineColor(sf::Color::White);
+    exitButton.setOutlineThickness(2);
+    exitButton.setPosition(300, 450);
+
+    sf::Text exitText;
+    exitText.setString("Exit");
+    exitText.setCharacterSize(20);
+    exitText.setFillColor(sf::Color::White);
+    exitText.setFont(font);
+    sf::FloatRect exitTextBounds = exitText.getLocalBounds();
+    exitText.setPosition(300 + (100 - exitTextBounds.width) / 2 - exitTextBounds.left, 
+                         450 + (40 - exitTextBounds.height) / 2 - exitTextBounds.top);
+
+    sf::RectangleShape restartButton(sf::Vector2f(100, 40));
+    restartButton.setFillColor(sf::Color(0, 150, 0));
+    restartButton.setOutlineColor(sf::Color::White);
+    restartButton.setOutlineThickness(2);
+    restartButton.setPosition(450, 450);
+
+    sf::Text restartText;
+    restartText.setString("Restart");
+    restartText.setCharacterSize(20);
+    restartText.setFillColor(sf::Color::White);
+    restartText.setFont(font);
+    sf::FloatRect restartTextBounds = restartText.getLocalBounds();
+    restartText.setPosition(450 + (100 - restartTextBounds.width) / 2 - restartTextBounds.left, 
+                            450 + (40 - restartTextBounds.height) / 2 - restartTextBounds.top);
+
+    while (true) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                return GameAction::Exit;
+            }
+            if (event.type == sf::Event::MouseButtonPressed) {
+                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                if (exitButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+                    return GameAction::Exit;
+                } else if (restartButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+                    return GameAction::Restart;
+                }
+            }
+        }
+        window.clear();
+        window.draw(overlay);
+        window.draw(gameOverText);
+        window.draw(coinsText);
+        window.draw(killedText);
+        window.draw(exitButton);
+        window.draw(exitText);
+        window.draw(restartButton);
+        window.draw(restartText);
+        window.display();
+    }
+}
+
+void resetGame(vector<Critter*>& critters, int& playerCoins, int& waveNumber, int& crittersKilled, bool& towersPlaced, Map& map, sf::Clock& waveTimer) {
+    for (auto* critter : critters) {
+        delete critter;
+    }
+    critters.clear();
+    playerCoins = 1000;
+    waveNumber = 1;
+    crittersKilled = 0;
+    towersPlaced = false;
+    map.resetMap();
+    map.clearPath(); // Clear the path
+    map.resetOverlay(); // Reset to dimension overlay
+    waveTimer.restart();
 }
 
 int main() {
@@ -224,126 +335,138 @@ int main() {
     sf::Clock frameClock;
 
     while (window.isOpen()) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) window.close();
-            if (map.isOverlayActive()) {
-                map.handleEvent(event, window);
-            } else {
-                map.handleMouseDrag(event, window);
-                handleTowerSelection(window, event);
-                if (event.type == sf::Event::MouseButtonPressed) {
-                    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-                    if (event.mouseButton.button == sf::Mouse::Right) {
-                        int prevCoins = playerCoins;
-                        int prevTowerCount = map.getTowerCount();
-                        map.handleRightClick(mousePos.x, mousePos.y);
-                        if (playerCoins > prevCoins) {
-                            const auto& towers = map.getTowers();
-                            for (int y = 0; y < towers.size(); ++y) {
-                                for (int x = 0; x < towers[y].size(); ++x) {
-                                    if (!towers[y][x] && prevTowerCount > map.getTowerCount()) {
-                                        messageText.setString("Tower sold");
-                                        messageTimer.restart();
-                                        promptUserToPlaceTowers(map, window, font, towersPlaced, true);
-                                        break;
+        if (gameOver) {
+            GameAction action = displayGameOverOverlay(window, playerCoins, crittersKilled, font);
+            if (action == GameAction::Exit) {
+                window.close();
+            } else if (action == GameAction::Restart) {
+                resetGame(critters, playerCoins, waveNumber, crittersKilled, towersPlaced, map, waveTimer);
+                gameOver = false;
+            }
+        } else {
+            sf::Event event;
+            while (window.pollEvent(event)) {
+                if (event.type == sf::Event::Closed) window.close();
+                if (map.isOverlayActive()) {
+                    map.handleEvent(event, window);
+                } else {
+                    map.handleMouseDrag(event, window);
+                    handleTowerSelection(window, event);
+                    if (event.type == sf::Event::MouseButtonPressed) {
+                        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                        if (event.mouseButton.button == sf::Mouse::Right) {
+                            int prevCoins = playerCoins;
+                            int prevTowerCount = map.getTowerCount();
+                            map.handleRightClick(mousePos.x, mousePos.y);
+                            if (playerCoins > prevCoins) {
+                                const auto& towers = map.getTowers();
+                                for (int y = 0; y < towers.size(); ++y) {
+                                    for (int x = 0; x < towers[y].size(); ++x) {
+                                        if (!towers[y][x] && prevTowerCount > map.getTowerCount()) {
+                                            messageText.setString("Tower sold");
+                                            messageTimer.restart();
+                                            promptUserToPlaceTowers(map, window, font, towersPlaced, true);
+                                            break;
+                                        }
                                     }
                                 }
+                            } else if (playerCoins < prevCoins) {
+                                int gridX = mousePos.x / map.getTileSize().x;
+                                int gridY = mousePos.y / map.getTileSize().y;
+                                if (gridX >= 0 && gridX < map.getTowers()[0].size() && gridY >= 0 && gridY < map.getTowers().size() && map.getTowers()[gridY][gridX]) {
+                                    messageText.setString(map.getTowers()[gridY][gridX]->getName() + " upgraded to level " + std::to_string(map.getTowers()[gridY][gridX]->getLevel()));
+                                    messageTimer.restart();
+                                }
                             }
-                        } else if (playerCoins < prevCoins) {
-                            int gridX = mousePos.x / map.getTileSize().x;
-                            int gridY = mousePos.y / map.getTileSize().y;
-                            if (gridX >= 0 && gridX < map.getTowers()[0].size() && gridY >= 0 && gridY < map.getTowers().size() && map.getTowers()[gridY][gridX]) {
-                                messageText.setString(map.getTowers()[gridY][gridX]->getName() + " upgraded to level " + std::to_string(map.getTowers()[gridY][gridX]->getLevel()));
-                                messageTimer.restart();
+                        } else if (event.mouseButton.button == sf::Mouse::Left && quitButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+                            if (showQuitConfirmation(window, font)) {
+                                window.close();
                             }
-                        }
-                    } else if (event.mouseButton.button == sf::Mouse::Left && quitButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                        if (showQuitConfirmation(window, font)) {
-                            window.close();
                         }
                     }
                 }
             }
-        }
 
-        if (!map.isOverlayActive() && map.isPathCreated()) {
-            if (critters.empty() && waveTimer.getElapsedTime().asSeconds() > 10) {
-                for (auto* critter : critters) delete critter;
-                critters.clear();
-                critters = critterGen.generateWave(waveNumber++, map.getStartPosition(), map.getTileSize().x);
-                cout << "Wave " + std::to_string(waveNumber) + " generated with " + std::to_string(critters.size()) + " critters" << endl;
-                for (auto* critter : critters) {
-                    critterView.addCritter(critter);
+            if (!map.isOverlayActive() && map.isPathCreated()) {
+                if (critters.empty() && waveTimer.getElapsedTime().asSeconds() > 10) {
+                    for (auto* critter : critters) delete critter;
+                    critters.clear();
+                    critters = critterGen.generateWave(waveNumber++, map.getStartPosition(), map.getTileSize().x);
+                    cout << "Wave " + std::to_string(waveNumber) + " generated with " + std::to_string(critters.size()) + " critters" << endl;
+                    for (auto* critter : critters) {
+                        critterView.addCritter(critter);
+                    }
+                    waveTimer.restart();
                 }
-                waveTimer.restart();
-            }
 
-            float deltaTime = frameClock.restart().asSeconds();
-            sf::Vector2f endTileCenter(
-                map.getEndPosition().x + map.getTileSize().x / 2.0f,
-                map.getEndPosition().y + map.getTileSize().y / 2.0f
-            );
+                float deltaTime = frameClock.restart().asSeconds();
+                sf::Vector2f endTileCenter(
+                    map.getEndPosition().x + map.getTileSize().x / 2.0f,
+                    map.getEndPosition().y + map.getTileSize().y / 2.0f
+                );
 
-            for (auto it = critters.begin(); it != critters.end();) {
-                (*it)->move(map.getPathPositions(), map.getTileSize().x, deltaTime);
-                if ((*it)->isDead()) {
-                    playerCoins += (*it)->getReward();
-                    critterView.removeCritter(*it);
-                    delete *it;
-                    it = critters.erase(it);
-                } else if ((*it)->hasReachedExit(endTileCenter)) {
-                    playerCoins -= (*it)->getStrength();
-                    cout << "Critter reached exit, player lost " << std::to_string((*it)->getStrength()) << " coins" << endl;
-                    critterView.removeCritter(*it);
-                    delete *it;
-                    it = critters.erase(it);
-                } else {
-                    ++it;
-                }
-            }
-
-            for (auto it = bullets.begin(); it != bullets.end();) {
-                it->update(deltaTime);
-                if (!it->isActive()) {
-                    it = bullets.erase(it);
-                } else {
-                    ++it;
-                }
-            }
-
-            const auto& towers = map.getTowers();
-            for (int y = 0; y < towers.size(); ++y) {
-                for (int x = 0; x < towers[y].size(); ++x) {
-                    if (towers[y][x] && towers[y][x]->getLevel() > 0) {
-                        towers[y][x]->attack(critters, bullets);
-                        towers[y][x]->updateAnimation();
+                for (auto it = critters.begin(); it != critters.end();) {
+                    (*it)->move(map.getPathPositions(), map.getTileSize().x, deltaTime);
+                    if ((*it)->isDead()) {
+                        playerCoins += (*it)->getReward();
+                        critterView.removeCritter(*it);
+                        delete *it;
+                        it = critters.erase(it);
+                        crittersKilled++;
+                    } else if ((*it)->hasReachedExit(endTileCenter)) {
+                        playerCoins -= (*it)->getStrength();
+                        logObserver("Critter reached exit, player lost " + std::to_string((*it)->getStrength()) + " coins");
+                        critterView.removeCritter(*it);
+                        delete *it;
+                        it = critters.erase(it);
+                        gameOver = true;
+                    } else {
+                        ++it;
                     }
                 }
+
+                for (auto it = bullets.begin(); it != bullets.end();) {
+                    it->update(deltaTime);
+                    if (!it->isActive()) {
+                        it = bullets.erase(it); // Remove inactive bullets
+                    } else {
+                        ++it;
+                    }
+                }
+
+                const auto& towers = map.getTowers();
+                for (int y = 0; y < towers.size(); ++y) {
+                    for (int x = 0; x < towers[y].size(); ++x) {
+                        if (towers[y][x] && towers[y][x]->getLevel() > 0) {
+                            towers[y][x]->attack(critters, bullets);
+                            towers[y][x]->updateAnimation();
+                        }
+                    }
+                }
+
+                promptUserToPlaceTowers(map, window, font, towersPlaced);
             }
 
-            promptUserToPlaceTowers(map, window, font, towersPlaced);
-        }
+            coinText.setString("Coins: " + std::to_string(playerCoins));
+            if (messageTimer.getElapsedTime().asSeconds() > 2.0f) {
+                messageText.setString("");
+            }
 
-        coinText.setString("Coins: " + std::to_string(playerCoins));
-        if (messageTimer.getElapsedTime().asSeconds() > 2.0f) {
-            messageText.setString("");
+            window.clear();
+            map.draw(window);
+            for (auto* critter : critters) {
+                if (critter) critter->draw(window);
+            }
+            for (const auto& bullet : bullets) {
+                bullet.draw(window);
+            }
+            window.draw(coinText);
+            window.draw(messageText);
+            window.draw(quitButton);
+            window.draw(quitText);
+            drawTowerSelection(window, font);
+            window.display();
         }
-
-        window.clear();
-        map.draw(window);
-        for (auto* critter : critters) {
-            if (critter) critter->draw(window);
-        }
-        for (const auto& bullet : bullets) {
-            bullet.draw(window);
-        }
-        window.draw(coinText);
-        window.draw(messageText);
-        window.draw(quitButton);
-        window.draw(quitText);
-        drawTowerSelection(window, font);
-        window.display();
     }
 
     for (auto* critter : critters) delete critter;
@@ -354,3 +477,4 @@ int main() {
 
     return 0;
 }
+

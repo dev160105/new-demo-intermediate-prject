@@ -8,18 +8,6 @@ Program started
 [Map Observer]: Map state has changed!
 [Map Observer]: Notifying observers of event: OverlayClicked
 [Map Observer]: Map state has changed!
-[Map Observer]: Notifying observers of event: OverlayClicked
-[Map Observer]: Map state has changed!
-[Map Observer]: Notifying observers of event: OverlayClicked
-[Map Observer]: Map state has changed!
-[Map Observer]: Notifying observers of event: OverlayClicked
-[Map Observer]: Map state has changed!
-[Map Observer]: Notifying observers of event: OverlayClicked
-[Map Observer]: Map state has changed!
-[Map Observer]: Notifying observers of event: OverlayClicked
-[Map Observer]: Map state has changed!
-[Map Observer]: Notifying observers of event: OverlayClicked
-[Map Observer]: Map state has changed!
 [Map Observer]: Notifying observers of event: DimensionsConfirmed
 [Map Observer]: Map state has changed!
 [Map Observer]: Notifying observers of event: TowerPlaced
@@ -34,86 +22,10 @@ Program started
 [Map Observer]: Map state has changed!
 [Map Observer]: Notifying observers of event: TowerPlaced
 [Map Observer]: Map state has changed!
-[Critter Observer] Notifying event: CritterAdded at position (20.000000, 380.000000)
-[Critter Observer] Notifying event: CritterAdded at position (20.000000, 380.000000)
-[Critter Observer] Notifying event: CritterAdded at position (20.000000, 380.000000)
-[Critter Observer]: A new critter has been added!
 [Map Observer]: Notifying observers of event: PathDraw
 [Map Observer]: Map state has changed!
-[Critter Observer] Notifying event: CritterDamaged at position (220.000000, 480.017944)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (222.040695, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (222.349213, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (222.561615, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (222.781815, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterKilled at position (222.999252, 500.000000)
-[Critter Observer]: A critter has been killed!
-[Critter Observer] Notifying event: CritterRemoved at position (223.208298, 500.000000)
-[Critter Observer] Notifying event: CritterAdded at position (20.000000, 380.000000)
-[Critter Observer] Notifying event: CritterAdded at position (20.000000, 380.000000)
-[Critter Observer] Notifying event: CritterAdded at position (20.000000, 380.000000)
+[Critter Observer] Notifying event: CritterAdded at position (40.000000, 360.000000)
+[Critter Observer] Notifying event: CritterAdded at position (40.000000, 360.000000)
+[Critter Observer] Notifying event: CritterAdded at position (40.000000, 360.000000)
 [Critter Observer]: A new critter has been added!
-[Critter Observer] Notifying event: CritterDamaged at position (222.266022, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (222.687576, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (222.980438, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (223.264297, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (223.558960, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (223.862976, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterKilled at position (224.145401, 500.000000)
-[Critter Observer]: A critter has been killed!
-[Critter Observer] Notifying event: CritterRemoved at position (224.437180, 500.000000)
-[Critter Observer] Notifying event: CritterAdded at position (20.000000, 380.000000)
-[Critter Observer] Notifying event: CritterAdded at position (20.000000, 380.000000)
-[Critter Observer] Notifying event: CritterAdded at position (20.000000, 380.000000)
-[Critter Observer]: A new critter has been added!
-[Critter Observer] Notifying event: CritterDamaged at position (223.125763, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (224.053116, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (224.995361, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (225.744644, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (226.466080, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (227.216324, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (227.980011, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterKilled at position (228.783524, 500.000000)
-[Critter Observer]: A critter has been killed!
-[Critter Observer] Notifying event: CritterRemoved at position (229.533279, 500.000000)
-[Critter Observer] Notifying event: CritterAdded at position (20.000000, 380.000000)
-[Critter Observer] Notifying event: CritterAdded at position (20.000000, 380.000000)
-[Critter Observer] Notifying event: CritterAdded at position (20.000000, 380.000000)
-[Critter Observer]: A new critter has been added!
-[Critter Observer] Notifying event: CritterDamaged at position (222.176804, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (223.546005, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (224.563004, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (225.553604, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (226.531601, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (227.500595, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (228.491791, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterDamaged at position (229.442795, 500.000000)
-[Critter Observer]: A critter has taken damage!
-[Critter Observer] Notifying event: CritterKilled at position (230.405197, 500.000000)
-[Critter Observer]: A critter has been killed!
-[Critter Observer] Notifying event: CritterRemoved at position (231.431793, 500.000000)
 Program ended

@@ -321,7 +321,7 @@ void Map::updateGridDimensions(sf::RenderWindow& window) {
     createGrid();
 }
 
-bool Map::placeTower(int x, int y, TowerType type) {
+bool Map::placeTower(int x, int y, TowerType type, float tileSize) {
     if (towerCount >= maxTowers) return false;
     int gridX = x / grid[0][0].getSize().x;
     int gridY = y / grid[0][0].getSize().y;
@@ -342,6 +342,7 @@ bool Map::placeTower(int x, int y, TowerType type) {
                 towers[gridY][gridX] = new SlowDamageTower(position);
                 break;
         }
+        towers[gridY][gridX]->setScaleToTileSize(tileSize); // Scale tower to tile size
         towerCount++;
         cout << "Tower placed at (" << std::to_string(gridX) << ", " << std::to_string(gridY) << ")" << endl;
         notify(EventType::TowerPlaced);
@@ -428,4 +429,43 @@ void Map::notify(EventType event) {
 
 void Map::setPlayerCoins(int& coins) {
     playerCoins = coins;
+}
+
+void Map::resetMap() {
+    for (auto& row : towers) {
+        for (auto* tower : row) {
+            delete tower;
+        }
+        row.assign(width, nullptr);
+    }
+    towerCount = 0;
+}
+
+void Map::clearPath() {
+    pathPositions.clear();
+    // Reset grid textures to grass where path was
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            grid[i][j].setTexture(&grassTexture);
+            grid[i][j].setTextureRect(sf::IntRect(0, 0, grassTexture.getSize().x, grassTexture.getSize().y));
+        }
+    }
+}
+
+void Map::resetOverlay() {
+    overlayActive = true;
+    widthInput = "10";
+    heightInput = "10";
+    widthInputText.setString(widthInput);
+    heightInputText.setString(heightInput);
+    sf::FloatRect widthTextBounds = widthInputText.getLocalBounds();
+    widthInputText.setPosition(
+        200 + (150 - widthTextBounds.width) / 2 - widthTextBounds.left,
+        350 + (50 - widthTextBounds.height) / 2 - widthTextBounds.top
+    );
+    sf::FloatRect heightTextBounds = heightInputText.getLocalBounds();
+    heightInputText.setPosition(
+        450 + (150 - heightTextBounds.width) / 2 - heightTextBounds.left,
+        350 + (50 - heightTextBounds.height) / 2 - heightTextBounds.top
+    );
 }

@@ -4,14 +4,13 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include "Tower.h"
-#include "MapEvents.h" // Ensure EventType is defined
-#include "MapObserver.h" // Include after MapEvents.h
+#include "MapEvents.h"
+#include "MapObserver.h"
 #include <fstream>
 #include <iostream>
 
 using namespace std;
 
-// Forward declarations for derived tower classes
 class DirectDamageTower;
 class AreaDamageTower;
 class SlowDamageTower;
@@ -61,7 +60,7 @@ public:
     void loadGrassTexture(const std::string& filePath);
     void loadPathTexture(const std::string& filePath);
     void loadTowerTextures();
-    bool placeTower(int x, int y, TowerType type);
+    bool placeTower(int x, int y, TowerType type, float tileSize); // Modified to accept tileSize
     bool canPlaceMoreTowers() const;
     bool isOverlayActive() const;
     bool isPathCreated() const;
@@ -79,6 +78,9 @@ public:
     void detach(MapObserver* observer);
     void notify(EventType event);
     void setPlayerCoins(int& coins);
+    void resetMap();
+    void clearPath();
+    void resetOverlay();
 };
 
 #endif

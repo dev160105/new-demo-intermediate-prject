@@ -2,24 +2,26 @@
 #define BULLET_H
 
 #include <SFML/Graphics.hpp>
-#include <cmath>
+#include <cmath> // Include cmath for std::sqrt
 
 class Bullet {
 public:
     Bullet(sf::Vector2f start, sf::Vector2f target, float speed = 200.0f)
         : position(start), target(target), speed(speed), active(true) {
-        shape.setRadius(2.0f); // Small dot for "."
+        shape.setRadius(2.0f); // Small dot for the bullet
         shape.setFillColor(sf::Color::White);
         shape.setPosition(position);
     }
 
     void update(float deltaTime) {
         if (!active) return;
+
+        // Move toward the target's position
         sf::Vector2f direction = target - position;
         float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
         if (distance < speed * deltaTime) {
             position = target;
-            active = false; // Bullet reached target
+            active = false; // Bullet reached the target
         } else {
             direction /= distance; // Normalize
             position += direction * speed * deltaTime;

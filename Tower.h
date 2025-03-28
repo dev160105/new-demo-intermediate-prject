@@ -16,7 +16,7 @@ protected:
     int refund_value;
     int range;
     int power;
-    int rate_of_fire;
+    float rate_of_fire; // Changed to float: shots per second
     sf::Sprite sprite;
     sf::Texture texture;
     sf::Vector2f position;
@@ -26,9 +26,9 @@ protected:
     float firingAnimationDuration;
 
 public:
-    Tower(std::string name, int cost, int refund, int power, int rateOfFire, const std::string& textureFile, sf::Vector2f position);
+    Tower(std::string name, int cost, int refund, int power, float rateOfFire, const std::string& textureFile, sf::Vector2f position);
     virtual ~Tower() = default;
-    virtual void attack(std::vector<Critter*>& critters, std::vector<Bullet>& bullets) = 0; // Updated to spawn bullets
+    virtual void attack(std::vector<Critter*>& critters, std::vector<Bullet>& bullets) = 0;
     void upgrade(int& playerCoins);
     void sell(int& playerCoins);
     void draw(sf::RenderWindow& window) const;
@@ -39,16 +39,15 @@ public:
     int getRefundValue() const { return refund_value; }
     int getRange() const { return range; }
     int getPower() const { return power; }
-    int getRateOfFire() const { return rate_of_fire; }
+    float getRateOfFire() const { return rate_of_fire; } // Changed to float
     sf::Vector2f getPosition() const { return position; }
-    std::string getName() const { return name; } // Added for GUI messages
+    std::string getName() const { return name; }
     void updateAnimation();
     void attach(TowerObserver* observer);
     void detach(TowerObserver* observer);
     void notify(TowerEventType event);
 
 protected:
-    
     sf::Vector2f getTileSize() const;
 };
 

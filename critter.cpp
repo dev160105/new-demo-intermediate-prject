@@ -28,11 +28,7 @@ Critter::Critter(int hp, int speed, int reward, int strength, const std::string&
 }
 
 void Critter::move(const std::vector<sf::Vector2i>& path, float tileSize, float deltaTime) {
-    if (currentPathIndex >= path.size()) {
-        cout << "[Critter] Reached end of path at position (" + std::to_string(sprite.getPosition().x) + ", " + std::to_string(sprite.getPosition().y) + ")" << endl;
-        notifyObservers(CritterEventType::CritterReachedEnd);
-        return;
-    }
+    if (currentPathIndex >= path.size()) return;
 
     sf::Vector2f currentPos = sprite.getPosition();
     sf::Vector2f targetPos(
@@ -42,28 +38,15 @@ void Critter::move(const std::vector<sf::Vector2i>& path, float tileSize, float 
 
     sf::Vector2f direction(targetPos.x - currentPos.x, targetPos.y - currentPos.y);
     float distanceToTarget = std::sqrt(direction.x * direction.x + direction.y * direction.y);
-    float moveSpeed = speed * deltaTime * 60.0f;
+
+    // Scale down the speed to slow down the critters
+    float adjustedSpeed = speed * 0.5f; // Reduce speed by 50%
+    float moveSpeed = adjustedSpeed * deltaTime * 60.0f;
 
     if (distanceToTarget <= moveSpeed) {
         sprite.setPosition(targetPos);
         currentPathIndex++;
-        if (currentPathIndex < path.size()) {
-            sf::Vector2f nextTarget(
-                path[currentPathIndex].x * tileSize + tileSize / 2.0f,
-                path[currentPathIndex].y * tileSize + tileSize / 2.0f
-            );
-            sf::Vector2f nextDirection(nextTarget.x - targetPos.x, nextTarget.y - targetPos.y);
-            float remainingDistance = moveSpeed - distanceToTarget;
-            if (remainingDistance > 0) {
-                float nextDistance = std::sqrt(nextDirection.x * nextDirection.x + nextDirection.y * nextDirection.y);
-                if (nextDistance > 0) {
-                    sf::Vector2f moveVec = (nextDirection / nextDistance) * remainingDistance;
-                    sprite.move(moveVec);
-                }
-            }
-        }
-    }
-    else {
+    } else {
         sf::Vector2f moveVec = (direction / distanceToTarget) * moveSpeed;
         sprite.move(moveVec);
     }
