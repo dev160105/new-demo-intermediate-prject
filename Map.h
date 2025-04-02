@@ -4,14 +4,13 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include "Tower.h"
-#include "MapEvents.h" // Ensure EventType is defined
-#include "MapObserver.h" // Include after MapEvents.h
+#include "MapEvents.h"
+#include "MapObserver.h"
 #include <fstream>
 #include <iostream>
 
 using namespace std;
 
-// Forward declarations for derived tower classes
 class DirectDamageTower;
 class AreaDamageTower;
 class SlowDamageTower;
@@ -30,6 +29,14 @@ private:
     sf::RectangleShape overlay;
     sf::RectangleShape enterButton;
     sf::Text enterButtonText;
+    sf::RectangleShape loadButton;       // New Load button
+    sf::Text loadButtonText;
+    sf::RectangleShape map1Button;       // Map selection buttons
+    sf::Text map1ButtonText;
+    sf::RectangleShape map2Button;
+    sf::Text map2ButtonText;
+    sf::RectangleShape map3Button;
+    sf::Text map3ButtonText;
     sf::RectangleShape widthInputBox, heightInputBox;
     sf::Text widthInputText, heightInputText;
     sf::Text widthLabel, heightLabel;
@@ -37,6 +44,7 @@ private:
     sf::Font font;
     std::string widthInput, heightInput;
     bool overlayActive;
+    bool loadMenuActive;                 // Flag for showing map selection
     sf::RectangleShape startTile, endTile;
     sf::Texture grassTexture;
     sf::Texture pathTexture;
@@ -48,6 +56,8 @@ private:
     const int maxTowers = 6;
     std::vector<MapObserver*> observers;
     int& playerCoins;
+
+    void loadPresetMap(const std::string& filename); // New method to load preset map
 
 public:
     Map(MapObserver& observer, int& coins);
@@ -61,7 +71,7 @@ public:
     void loadGrassTexture(const std::string& filePath);
     void loadPathTexture(const std::string& filePath);
     void loadTowerTextures();
-    bool placeTower(int x, int y, TowerType type);
+    bool placeTower(int x, int y, TowerType type, float tileSize);
     bool canPlaceMoreTowers() const;
     bool isOverlayActive() const;
     bool isPathCreated() const;
@@ -79,6 +89,10 @@ public:
     void detach(MapObserver* observer);
     void notify(EventType event);
     void setPlayerCoins(int& coins);
+    void resetMap();
+    void clearPath();
+    void resetOverlay();
+    bool verifyPath() const;
 };
 
 #endif

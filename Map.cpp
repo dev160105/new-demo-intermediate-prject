@@ -1,3 +1,4 @@
+#include <queue>
 #include "Map.h"
 #include "Logger.h"
 #include "MapObserver.h"
@@ -7,7 +8,7 @@
 
 using namespace std;
 
-Map::Map(MapObserver& observer, int& coins) : width(10), height(10), overlayActive(true), widthInput("10"), heightInput("10"), isDragging(false), towerCount(0), playerCoins(coins) {
+Map::Map(MapObserver& observer, int& coins) : width(10), height(10), overlayActive(true), loadMenuActive(false), widthInput("10"), heightInput("10"), isDragging(false), towerCount(0), playerCoins(coins) {
     observer.setSubject(this);
     attach(&observer);
 
@@ -23,7 +24,7 @@ Map::Map(MapObserver& observer, int& coins) : width(10), height(10), overlayActi
     enterButton.setFillColor(sf::Color(0, 150, 0));
     enterButton.setOutlineColor(sf::Color::White);
     enterButton.setOutlineThickness(2);
-    enterButton.setPosition(340, 650);
+    enterButton.setPosition((800 - 120 * 2 - 40) / 2, 650);
 
     enterButtonText.setFont(font);
     enterButtonText.setCharacterSize(24);
@@ -31,8 +32,78 @@ Map::Map(MapObserver& observer, int& coins) : width(10), height(10), overlayActi
     enterButtonText.setString("Enter");
     sf::FloatRect enterBounds = enterButtonText.getLocalBounds();
     enterButtonText.setPosition(
-        340 + (120 - enterBounds.width) / 2 - enterBounds.left,
+        enterButton.getPosition().x + (120 - enterBounds.width) / 2 - enterBounds.left,
         650 + (60 - enterBounds.height) / 2 - enterBounds.top
+    );
+
+    loadButton.setSize({120, 60});
+    loadButton.setFillColor(sf::Color(0, 0, 255));
+    loadButton.setOutlineColor(sf::Color::White);
+    loadButton.setOutlineThickness(2);
+    loadButton.setPosition(enterButton.getPosition().x + 120 + 40, 650);
+
+    loadButtonText.setFont(font);
+    loadButtonText.setCharacterSize(24);
+    loadButtonText.setFillColor(sf::Color::White);
+    loadButtonText.setString("Load");
+    sf::FloatRect loadBounds = loadButtonText.getLocalBounds();
+    loadButtonText.setPosition(
+        loadButton.getPosition().x + (120 - loadBounds.width) / 2 - loadBounds.left,
+        650 + (60 - loadBounds.height) / 2 - loadBounds.top
+    );
+
+    // Center map buttons vertically and horizontally
+    const int buttonHeight = 60;
+    const int spacing = 80;
+    const int totalHeight = (3 * buttonHeight) + (2 * spacing); // 3 buttons, 2 gaps
+    const int startY = (800 - totalHeight) / 2; // Center vertically in 800px height
+
+    map1Button.setSize({120, buttonHeight});
+    map1Button.setFillColor(sf::Color(0, 150, 0));
+    map1Button.setOutlineColor(sf::Color::White);
+    map1Button.setOutlineThickness(2);
+    map1Button.setPosition((800 - 120) / 2, startY);
+
+    map1ButtonText.setFont(font);
+    map1ButtonText.setCharacterSize(24);
+    map1ButtonText.setFillColor(sf::Color::White);
+    map1ButtonText.setString("Map 1");
+    sf::FloatRect map1Bounds = map1ButtonText.getLocalBounds();
+    map1ButtonText.setPosition(
+        map1Button.getPosition().x + (120 - map1Bounds.width) / 2 - map1Bounds.left,
+        startY + (buttonHeight - map1Bounds.height) / 2 - map1Bounds.top
+    );
+
+    map2Button.setSize({120, buttonHeight});
+    map2Button.setFillColor(sf::Color(0, 150, 0));
+    map2Button.setOutlineColor(sf::Color::White);
+    map2Button.setOutlineThickness(2);
+    map2Button.setPosition((800 - 120) / 2, startY + buttonHeight + spacing);
+
+    map2ButtonText.setFont(font);
+    map2ButtonText.setCharacterSize(24);
+    map2ButtonText.setFillColor(sf::Color::White);
+    map2ButtonText.setString("Map 2");
+    sf::FloatRect map2Bounds = map2ButtonText.getLocalBounds();
+    map2ButtonText.setPosition(
+        map2Button.getPosition().x + (120 - map2Bounds.width) / 2 - map2Bounds.left,
+        map2Button.getPosition().y + (buttonHeight - map2Bounds.height) / 2 - map2Bounds.top
+    );
+
+    map3Button.setSize({120, buttonHeight});
+    map3Button.setFillColor(sf::Color(0, 150, 0));
+    map3Button.setOutlineColor(sf::Color::White);
+    map3Button.setOutlineThickness(2);
+    map3Button.setPosition((800 - 120) / 2, startY + (buttonHeight + spacing) * 2);
+
+    map3ButtonText.setFont(font);
+    map3ButtonText.setCharacterSize(24);
+    map3ButtonText.setFillColor(sf::Color::White);
+    map3ButtonText.setString("Map 3");
+    sf::FloatRect map3Bounds = map3ButtonText.getLocalBounds();
+    map3ButtonText.setPosition(
+        map3Button.getPosition().x + (120 - map3Bounds.width) / 2 - map3Bounds.left,
+        map3Button.getPosition().y + (buttonHeight - map3Bounds.height) / 2 - map3Bounds.top
     );
 
     widthInputBox.setSize({150, 50});
@@ -119,15 +190,28 @@ Map::~Map() {
 
 void Map::drawOverlay(sf::RenderWindow& window) {
     window.draw(overlay);
-    window.draw(enterButton);
-    window.draw(enterButtonText);
-    window.draw(widthInputBox);
-    window.draw(heightInputBox);
-    window.draw(widthInputText);
-    window.draw(heightInputText);
-    window.draw(widthLabel);
-    window.draw(heightLabel);
-    window.draw(enterSizeLabel);
+    if (!loadMenuActive) {
+        // Only draw Enter and Load buttons when loadMenuActive is false
+        window.draw(enterButton);
+        window.draw(enterButtonText);
+        window.draw(loadButton);
+        window.draw(loadButtonText);
+        window.draw(widthInputBox);
+        window.draw(heightInputBox);
+        window.draw(widthInputText);
+        window.draw(heightInputText);
+        window.draw(widthLabel);
+        window.draw(heightLabel);
+        window.draw(enterSizeLabel);
+    } else {
+        // Draw map buttons when loadMenuActive is true
+        window.draw(map1Button);
+        window.draw(map1ButtonText);
+        window.draw(map2Button);
+        window.draw(map2ButtonText);
+        window.draw(map3Button);
+        window.draw(map3ButtonText);
+    }
 }
 
 void Map::handleEvent(sf::Event& event, sf::RenderWindow& window) {
@@ -136,7 +220,7 @@ void Map::handleEvent(sf::Event& event, sf::RenderWindow& window) {
             sf::Vector2f clickPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
             cout << ("Mouse click at: (" + std::to_string(clickPos.x) + ", " + std::to_string(clickPos.y) + ")") << endl;
             notify(EventType::OverlayClicked);
-            if (enterButton.getGlobalBounds().contains(clickPos)) {
+            if (enterButton.getGlobalBounds().contains(clickPos) && !loadMenuActive) {
                 cout << ("Enter button clicked") << endl;
                 width = std::stoi(widthInput);
                 height = std::stoi(heightInput);
@@ -144,6 +228,26 @@ void Map::handleEvent(sf::Event& event, sf::RenderWindow& window) {
                 overlayActive = false;
                 cout << ("Map dimensions confirmed") << endl;
                 notify(EventType::DimensionsConfirmed);
+            } else if (loadButton.getGlobalBounds().contains(clickPos) && !loadMenuActive) {
+                cout << ("Load button clicked") << endl;
+                loadMenuActive = true;
+            } else if (loadMenuActive) {
+                if (map1Button.getGlobalBounds().contains(clickPos)) {
+                    loadPresetMap("./assets/map1.txt");
+                    overlayActive = false;
+                    loadMenuActive = false;
+                    notify(EventType::DimensionsConfirmed);
+                } else if (map2Button.getGlobalBounds().contains(clickPos)) {
+                    loadPresetMap("./assets/map2.txt");
+                    overlayActive = false;
+                    loadMenuActive = false;
+                    notify(EventType::DimensionsConfirmed);
+                } else if (map3Button.getGlobalBounds().contains(clickPos)) {
+                    loadPresetMap("./assets/map3.txt");
+                    overlayActive = false;
+                    loadMenuActive = false;
+                    notify(EventType::DimensionsConfirmed);
+                }
             } else if (widthInputBox.getGlobalBounds().contains(clickPos)) {
                 widthInput.clear();
                 widthInputText.setString(widthInput);
@@ -161,7 +265,7 @@ void Map::handleEvent(sf::Event& event, sf::RenderWindow& window) {
                     350 + (50 - heightTextBounds.height) / 2 - heightTextBounds.top
                 );
             }
-        } else if (event.type == sf::Event::TextEntered) {
+        } else if (event.type == sf::Event::TextEntered && !loadMenuActive) {
             cout << ("Text entered: " + std::string(1, static_cast<char>(event.text.unicode))) << endl;
             notify(EventType::OverlayClicked);
             if (event.text.unicode >= '0' && event.text.unicode <= '9') {
@@ -311,9 +415,48 @@ void Map::handleMouseDrag(sf::Event& event, sf::RenderWindow& window) {
                 }
             }
         }
+    }
+    else if (event.type == sf::Event::MouseButtonReleased && isDragging) {
     } else if (event.type == sf::Event::MouseButtonReleased && isDragging) {
         isDragging = false;
         notify(EventType::PathDraw);
+        if (isPathCreated()) {
+            std::vector<sf::Vector2i> cleanedPath;
+            cleanedPath.reserve(pathPositions.size());
+            for (const auto& pos : pathPositions) {
+                bool isDuplicate = false;
+                for (const auto& seenPos : cleanedPath) {
+                    if (seenPos == pos) {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+                if (!isDuplicate) {
+                    cleanedPath.push_back(pos);
+                }
+            }
+            pathPositions = std::move(cleanedPath);
+
+            cout << "Path coordinates (duplicates removed):" << endl;
+            for (const auto& pos : pathPositions) {
+                cout << "(" << pos.x << ", " << pos.y << ")" << endl;
+            }
+            cout << "Path starts at (" << pathPositions[0].x << ", " << pathPositions[0].y << ")" << endl;
+            cout << "Path creation completed." << endl;
+
+            // Verify the path
+            if (verifyPath()) {
+                cout << "Path is valid: Connected from start to end." << endl;
+                logObserver("[Map Observer]: Path verified as valid");
+            }
+            else {
+                cout << "Path is invalid: No continuous path from start to end." << endl;
+                logObserver("[Map Observer]: Path verified as invalid");
+                // Optionally clear the path for retry
+                clearPath();
+                cout << "Path cleared. Please try again." << endl;
+            }
+        }
     }
 }
 
@@ -321,7 +464,7 @@ void Map::updateGridDimensions(sf::RenderWindow& window) {
     createGrid();
 }
 
-bool Map::placeTower(int x, int y, TowerType type) {
+bool Map::placeTower(int x, int y, TowerType type, float tileSize) {
     if (towerCount >= maxTowers) return false;
     int gridX = x / grid[0][0].getSize().x;
     int gridY = y / grid[0][0].getSize().y;
@@ -342,6 +485,7 @@ bool Map::placeTower(int x, int y, TowerType type) {
                 towers[gridY][gridX] = new SlowDamageTower(position);
                 break;
         }
+        towers[gridY][gridX]->setScaleToTileSize(tileSize);
         towerCount++;
         cout << "Tower placed at (" << std::to_string(gridX) << ", " << std::to_string(gridY) << ")" << endl;
         notify(EventType::TowerPlaced);
@@ -428,4 +572,131 @@ void Map::notify(EventType event) {
 
 void Map::setPlayerCoins(int& coins) {
     playerCoins = coins;
+}
+
+void Map::resetMap() {
+    for (auto& row : towers) {
+        for (auto* tower : row) {
+            delete tower;
+        }
+        row.assign(width, nullptr);
+    }
+    towerCount = 0;
+}
+
+void Map::clearPath() {
+    pathPositions.clear();
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            grid[i][j].setTexture(&grassTexture);
+            grid[i][j].setTextureRect(sf::IntRect(0, 0, grassTexture.getSize().x, grassTexture.getSize().y));
+        }
+    }
+}
+
+void Map::resetOverlay() {
+    overlayActive = true;
+    loadMenuActive = false;
+    widthInput = "10";
+    heightInput = "10";
+    widthInputText.setString(widthInput);
+    heightInputText.setString(heightInput);
+    sf::FloatRect widthTextBounds = widthInputText.getLocalBounds();
+    widthInputText.setPosition(
+        200 + (150 - widthTextBounds.width) / 2 - widthTextBounds.left,
+        350 + (50 - widthTextBounds.height) / 2 - widthTextBounds.top
+    );
+    sf::FloatRect heightTextBounds = heightInputText.getLocalBounds();
+    heightInputText.setPosition(
+        450 + (150 - heightTextBounds.width) / 2 - heightTextBounds.left,
+        350 + (50 - heightTextBounds.height) / 2 - heightTextBounds.top
+    );
+}
+
+void Map::loadPresetMap(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        logObserver("Failed to open preset map file: " + filename);
+        return;
+    }
+
+    file >> width >> height;
+    createGrid();
+
+    int startX, startY, endX, endY;
+    file >> startX >> startY >> endX >> endY;
+    float tileSize = getTileSize().x;
+    startTile.setPosition(startX * tileSize, startY * tileSize);
+    endTile.setPosition(endX * tileSize, endY * tileSize);
+
+    pathPositions.clear();
+    int x, y;
+    while (file >> x >> y) {
+        pathPositions.push_back(sf::Vector2i(x, y));
+        grid[y][x].setTexture(&pathTexture);
+        grid[y][x].setTextureRect(sf::IntRect(0, 0, pathTexture.getSize().x, pathTexture.getSize().y));
+    }
+
+    file.close();
+    logObserver("Loaded preset map from: " + filename);
+}
+
+bool Map::verifyPath() const {
+    if (pathPositions.empty()) return false;
+
+    // Get start and end positions in grid coordinates
+    sf::Vector2i startPos(
+        static_cast<int>(startTile.getPosition().x / getTileSize().x),
+        static_cast<int>(startTile.getPosition().y / getTileSize().y)
+    );
+    sf::Vector2i endPos(
+        static_cast<int>(endTile.getPosition().x / getTileSize().x),
+        static_cast<int>(endTile.getPosition().y / getTileSize().y)
+    );
+
+    // Check if start and end are in pathPositions
+    bool startFound = false, endFound = false;
+    for (const auto& pos : pathPositions) {
+        if (pos == startPos) startFound = true;
+        if (pos == endPos) endFound = true;
+    }
+    if (!startFound || !endFound) return false;
+
+    // BFS 
+    std::vector<std::vector<bool>> visited(height, std::vector<bool>(width, false));
+    std::queue<sf::Vector2i> q;
+    q.push(startPos);
+    visited[startPos.y][startPos.x] = true;
+
+    // Directions for adjacent tiles (up, right, down, left)
+    const sf::Vector2i directions[] = {
+        {0, -1}, {1, 0}, {0, 1}, {-1, 0}
+    };
+
+    while (!q.empty()) {
+        sf::Vector2i current = q.front();
+        q.pop();
+
+        if (current == endPos) return true;
+
+        for (const auto& dir : directions) {
+            sf::Vector2i next = current + dir;
+            if (next.x >= 0 && next.x < width && next.y >= 0 && next.y < height && !visited[next.y][next.x]) {
+                // Check if the next position is part of the path
+                bool isPathTile = false;
+                for (const auto& pos : pathPositions) {
+                    if (pos == next) {
+                        isPathTile = true;
+                        break;
+                    }
+                }
+                if (isPathTile) {
+                    visited[next.y][next.x] = true;
+                    q.push(next);
+                }
+            }
+        }
+    }
+
+    return false; // No path found
 }

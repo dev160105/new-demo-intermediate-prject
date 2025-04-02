@@ -7,24 +7,26 @@
 using namespace std;
 
 Critter::Critter(int hp, int speed, int reward, int strength, const std::string& textureFile, sf::Vector2f startPos, float tileSize)
-    : hitPoints(hp), speed(speed), reward(reward), strength(strength), currentPathIndex(0), distanceTraveled(0.0f) {
+    : maxHealth(hp), currentHealth(hp), speed(speed), reward(reward), strength(strength), currentPathIndex(0), distanceTraveled(0.0f) {
+    // Load texture
     if (!texture.loadFromFile(textureFile)) {
-        cout << ("Failed to load critter texture from " + textureFile) << endl;
+        std::cerr << "Failed to load texture: " << textureFile << std::endl;
     }
     sprite.setTexture(texture);
-    sprite.setPosition(startPos.x + tileSize / 2.0f, startPos.y + tileSize / 2.0f);
+    sprite.setPosition(startPos);
+    sprite.setScale(tileSize / texture.getSize().x, tileSize / texture.getSize().y);
 
-    const float baseSize = 40.0f;
-    const float referenceTileSize = 80.0f;
-    float scale = (baseSize / texture.getSize().x) * (tileSize / referenceTileSize);
-    scale = std::max(scale, 0.50f);
-    sprite.setScale(scale, scale);
+    // Initialize health bar background
+    healthBarBackground.setSize(sf::Vector2f(30, 5)); // Width: 30, Height: 5
+    healthBarBackground.setFillColor(sf::Color::Red);
 
-    sf::FloatRect bounds = sprite.getLocalBounds();
-    sprite.setOrigin(bounds.width / 2.0f, bounds.height / 2.0f);
+    // Initialize health bar
+    healthBar.setSize(sf::Vector2f(30, 5));
+    healthBar.setFillColor(sf::Color::Green);
+}
 
-    cout << "[Critter] Created at position (" + std::to_string(sprite.getPosition().x) + ", " + std::to_string(sprite.getPosition().y) + ")" << endl;
-    notifyObservers(CritterEventType::CritterAdded);
+Critter::~Critter() {
+    // Destructor logic if needed
 }
 
 void Critter::move(const std::vector<sf::Vector2i>& path, float tileSize, float deltaTime) {
@@ -70,15 +72,12 @@ void Critter::move(const std::vector<sf::Vector2i>& path, float tileSize, float 
 }
 
 void Critter::takeDamage(int damage) {
-    hitPoints -= damage;
-    if (hitPoints <= 0) {
-        hitPoints = 0;
-        cout << ("[Critter] Killed at position (" + std::to_string(sprite.getPosition().x) + ", " + std::to_string(sprite.getPosition().y) + ")") << endl;
-        notifyObservers(CritterEventType::CritterKilled);
-    } else {
-        cout << "[Critter] Took " + std::to_string(damage) + " damage, HP now " + std::to_string(hitPoints) << endl;
-        notifyObservers(CritterEventType::CritterDamaged);
-    }
+    currentHealth -= damage;
+    if (currentHealth < 0) currentHealth = 0;
+
+    // Update health bar size
+    float healthPercentage = static_cast<float>(currentHealth) / maxHealth;
+    healthBar.setSize(sf::Vector2f(30 * healthPercentage, 5));
 }
 
 void Critter::slow(float effect) {
@@ -88,7 +87,7 @@ void Critter::slow(float effect) {
 }
 
 bool Critter::isDead() const {
-    return hitPoints <= 0;
+    return currentHealth <= 0;
 }
 
 bool Critter::hasReachedExit(const sf::Vector2f& endTileCenter) const {
@@ -104,7 +103,17 @@ bool Critter::hasReachedExit(const sf::Vector2f& endTileCenter) const {
 }
 
 void Critter::draw(sf::RenderWindow& window) {
+    // Draw the critter
     window.draw(sprite);
+
+    // Position the health bar above the critter
+    sf::Vector2f critterPosition = sprite.getPosition();
+    healthBarBackground.setPosition(critterPosition.x, critterPosition.y - 10); // Adjust Y offset
+    healthBar.setPosition(critterPosition.x, critterPosition.y - 10);
+
+    // Draw health bar
+    window.draw(healthBarBackground);
+    window.draw(healthBar);
 }
 
 sf::Vector2f Critter::getPosition() const {
@@ -156,4 +165,11 @@ void Critter::notifyObservers(CritterEventType event) {
     for (CritterObserver* observer : observers) {
         observer->updateView(event); // Note: Changed to updateView to match your implementation
     }
+}
+void Critter::setPosition(float x, float y) {
+    sprite.setPosition(x, y);
+}
+
+sf::Sprite Critter::getSprite() const {
+    return sprite;
 }
